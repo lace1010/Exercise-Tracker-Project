@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.static("public"));
 
 // Connect to mongoDB
-mongoose.connect(process.env.EXERCISE_URL, {
+mongoose.connect(process.env.EXERCISE_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
