@@ -39,6 +39,7 @@ const userSchema = new Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// Create new user with post() from form in html
 app.post("/api/exercise/new-user", (req, res) => {
   let userName = req.body.username;
 
@@ -56,6 +57,23 @@ app.post("/api/exercise/new-user", (req, res) => {
       // id is automatically given to every object put in mongoDB
     });
   });
+});
+
+// Get an array of all of users in database returning object with username and _id
+app.get("/api/exercise/users", async (req, res) => {
+  // We use __v:0 because in mongoDB every object is autmatically assigned that key:value pair
+  let array = await User.find({ __v: 0 }); // Want to be all types
+
+  // Only want  each objects username and _id key:pair values so we exclude __v
+  let cutArray = array.map((i) => {
+    return {
+      username: i.username,
+      _id: i._id,
+    };
+  });
+
+  // Return the array we desire with res.json
+  res.json(cutArray);
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
