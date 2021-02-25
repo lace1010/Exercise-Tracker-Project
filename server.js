@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.static("public"));
 
 // Connect to mongoDB
-mongoose.connect(process.env.EXERCISE_URI, {
+mongoose.connect(process.env.EXERCISE_USER_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -30,6 +30,32 @@ db.once("open", () => {
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
+});
+
+// First we need to create our model
+const userSchema = new Schema({
+  username: String,
+});
+
+const User = mongoose.model("User", userSchema);
+
+app.post("/api/exercise/new-user", (req, res) => {
+  let userName = req.body.username;
+
+  // Create a newUser with a new username
+  let newUser = new User({
+    username: userName,
+  });
+
+  // Save newUswer to database and return json object of its' username and id
+  newUser.save((error, newuser) => {
+    if (error) return console.log(error);
+    res.json({
+      username: newuser.username,
+      _id: newuser._id,
+      // id is automatically given to every object put in mongoDB
+    });
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
