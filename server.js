@@ -86,10 +86,8 @@ app.get("/api/exercise/users", async (req, res) => {
   res.json(cutArray);
 });
 
-/*
-You can POST to /api/exercise/add with form data userId=_id, description, duration, and optionally date.
-If no date is supplied, the current date will be used. The response returned will be the user object with the exercise fields added.
-*/
+/* POST to /api/exercise/add with form data userId=_id, description, duration, and optionally date.
+If no date is supplied, the current date will be used. The response returned will be the user object with the exercise fields added. */
 app.post("/api/exercise/add", async (req, res) => {
   let date = new Date(req.body.date).toDateString();
   let userId = req.body.userId;
@@ -124,6 +122,16 @@ app.post("/api/exercise/add", async (req, res) => {
       res.json(responseObject);
     }
   );
+});
+
+// Retrienve a full exercise log of any user.
+app.get("/api/exercise/log/:userId=_id", (req, res) => {
+  User.findById(req.params.userId, (error, foundUser) => {
+    if (error) return res.json({ error: "userId does not exist" });
+    delete foundUser.workout_log[0]._id; // Delete the automatically generated id of workout_log in foundUser so we only display description duration and date for workout
+    // console.log(foundUser.workout_log[0]);
+    res.json({ log: foundUser.workout_log });
+  });
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
