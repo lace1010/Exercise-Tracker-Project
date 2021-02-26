@@ -104,29 +104,25 @@ app.post("/api/exercise/add", async (req, res) => {
     date: date,
   });
 
-  // If the userId given is 24hex character to match ObjectId requirements. Then try to find user in mongoDB
-  // We have to do the 24 hex character as searching for _id will not handle inputs that not the correct format and crash the app.
-  if (userId.match(/^[0-9a-fA-F]{24}$/)) {
-    // Syntax => A.findByIdAndUpdate(id, update, options, callback) // executes
-    User.findByIdAndUpdate(
-      userId,
-      // in Update paramater we use $push to push an object into User's exercise_log array for the object in mongoDB
-      { $push: { exercise_log: newExercise } },
-      { new: true }, // We need new, true to return the updated version and not the original. (Default is false)
-      // Callback function to execute the update
-      (error, updatedUser) => {
-        if (error) return res.json({ error: "userId does not exist" });
-        let responseObject = {
-          username: updatedUser.username,
-          _id: userId,
-          description: newExercise.description,
-          duration: newExercise.duration,
-          date: date,
-        };
-        res.json(responseObject);
-      }
-    );
-  } else return res.json({ error: "userId does not exist" });
+  // Syntax => A.findByIdAndUpdate(id, update, options, callback) // executes
+  User.findByIdAndUpdate(
+    userId,
+    // in Update paramater we use $push to push an object into User's exercise_log array for the object in mongoDB
+    { $push: { exercise_log: newExercise } },
+    { new: true }, // We need new, true to return the updated version and not the original. (Default is false)
+    // Callback function to execute the update
+    (error, updatedUser) => {
+      if (error) return res.json({ error: "userId does not exist" });
+      let responseObject = {
+        username: updatedUser.username,
+        _id: userId,
+        description: newExercise.description,
+        duration: newExercise.duration,
+        date: date,
+      };
+      res.json(responseObject);
+    }
+  );
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
