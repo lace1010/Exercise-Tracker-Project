@@ -141,6 +141,9 @@ app.get("/api/exercise/log", (req, res) => {
     foundUser.workout_log.forEach((i) => delete i._id); // workout_log is the array we want to loop through
 
     respondObject["username"] = foundUser.username; // add username to object that goes in res.json()
+    responseObject["description"] = newWorkout.description;
+    responseObject["duration"] = newWorkout.duration;
+    responseObject["date"] = date;
 
     // Handle from to and limit paramters here before passing to res.json()
     if (fromDate !== "Invalid Date") respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
