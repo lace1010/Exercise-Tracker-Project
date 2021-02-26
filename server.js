@@ -141,9 +141,9 @@ app.get("/api/exercise/log", (req, res) => {
     foundUser.workout_log.forEach((i) => delete i._id); // workout_log is the array we want to loop through
 
     respondObject["username"] = foundUser.username; // add username to object that goes in res.json()
-    responseObject["description"] = newWorkout.description;
-    responseObject["duration"] = newWorkout.duration;
-    responseObject["date"] = date;
+    respondObject["description"] = foundUser.workout_log.description;
+    respondObject["duration"] = foundUser.workout_log.duration;
+    respondObject["date"] = foundUser.workout_log.date;
 
     // Handle from to and limit paramters here before passing to res.json()
     if (fromDate !== "Invalid Date") respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
@@ -154,8 +154,8 @@ app.get("/api/exercise/log", (req, res) => {
     let filteredArray = foundUser.workout_log.filter((element, index) => {
       if (
         // To see if a date is older than another we must convert it back from string to a real js Date()
-        new Date(fromDate) < new Date(element.date) &&
-        new Date(element.date) < new Date(toDate) &&
+        new Date(fromDate) <= new Date(element.date) &&
+        new Date(element.date) <= new Date(toDate) &&
         // If index is less than limit we got in paramter then we can add the element
         index < limit
       ) {
@@ -163,8 +163,13 @@ app.get("/api/exercise/log", (req, res) => {
       }
     });
 
-    respondObject["count"] = filteredArray.length;
-    respondObject["log"] = filteredArray;
+    if (filteredArray.length > 0) {
+      respondObject["count"] = filteredArray.length;
+      respondObject["log"] = filteredArray;
+    } else {
+      respondObject["count"] = foundUser.workout_log.length;
+      respondObject["log"] = foundUser.workout_log;
+    }
 
     res.json(respondObject); // Call res.json() for our response object based on paramters given
   });
