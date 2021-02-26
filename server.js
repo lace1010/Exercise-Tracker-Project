@@ -99,7 +99,7 @@ app.post("/api/exercise/add", async (req, res) => {
   if (currentUser) {
     res.json({
       username: currentUser.username,
-      _id: currentUser._id,
+      userId: currentUser._id,
       description: req.body.description,
       duration: req.body.duration,
       date: date,
