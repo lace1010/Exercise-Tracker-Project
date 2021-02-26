@@ -129,9 +129,15 @@ app.get("/api/exercise/log", (req, res) => {
   // query works when url following log has a question mark and has userid=. For example, /api/exercise/log?userId=6037404f42b62600155bf1ae
   User.findById(req.query.userId, (error, foundUser) => {
     if (error) return res.json({ error: "userId does not exist" });
-    delete foundUser.workout_log[0]._id; // Delete the automatically generated id of workout_log in foundUser so we only display description duration and date for workout
-    // console.log(foundUser.workout_log[0]);
-    res.json({ log: foundUser.workout_log });
+    //Delete the automatically generated id of workout_log in foundUser so we only display description duration and date for workout
+    // foundUser.workout_log.length is the number of workouts in the user object
+    for (let i = 0; i < foundUser.workout_log.length; i++) {
+      delete foundUser.workout_log[i]._id;
+    }
+    res.json({
+      log: foundUser.workout_log,
+      count: foundUser.workout_log.length,
+    });
   });
 });
 
