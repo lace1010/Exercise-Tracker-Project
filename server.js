@@ -127,17 +127,43 @@ app.post("/api/exercise/add", async (req, res) => {
 // Retrienve a full exercise log of any user.
 app.get("/api/exercise/log", (req, res) => {
   // query works when url following log has a question mark and has userid=. For example, /api/exercise/log?userId=6037404f42b62600155bf1ae
+
+  let respondObject = {};
+  // Example after userId=...&from=2020-02-20&to=2021-01-03&limit=3
+  let fromDate = new Date(req.query.from).toDateString();
+  let toDate = new Date(req.query.to).toDateString();
+  let limit = parseInt(req.query.limit);
+
   User.findById(req.query.userId, (error, foundUser) => {
     if (error) return res.json({ error: "userId does not exist" });
+
     //Delete the automatically generated id of workout_log in foundUser so we only display description duration and date for workout
-    // foundUser.workout_log.length is the number of workouts in the user object
-    for (let i = 0; i < foundUser.workout_log.length; i++) {
-      delete foundUser.workout_log[i]._id;
-    }
-    res.json({
-      log: foundUser.workout_log,
-      count: foundUser.workout_log.length,
+    foundUser.workout_log.forEach((i) => delete i._id); // workout_log is the array we want to loop through
+
+    respondObject["username"] = foundUser.username; // add username to object that goes in res.json()
+
+    // Handle from to and limit paramters here before passing to res.json()
+    if (fromDate !== "Invalid Date") respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
+    if (toDate !== "Invalid Date") respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
+    if (limit) respondObject["limit"] = limit; // If limit is a number (we use parseInt() in the limit variable above)
+
+    // Filter array so we only return workouts that are within from and to paramters and have a limit to how many workouts can return as well.
+    let filteredArray = foundUser.workout_log.filter((element, index) => {
+      if (
+        // To see if a date is older than another we must convert it back from string to a real js Date()
+        new Date(fromDate) < new Date(element.date) &&
+        new Date(element.date) < new Date(toDate) &&
+        // If index is less than limit we got in paramter then we can add the element
+        index < limit
+      ) {
+        return element;
+      }
     });
+
+    respondObject["count"] = filteredArray.length;
+    respondObject["log"] = filteredArray;
+
+    res.json(respondObject); // Call res.json() for our response object based on paramters given
   });
 });
 
@@ -145,4 +171,5 @@ const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
 
+// Test this id
 // 6037404f42b62600155bf1ae
