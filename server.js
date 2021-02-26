@@ -34,17 +34,17 @@ app.get("/", (req, res) => {
 
 // First we need to create our model for user
 // Create model for exercises to add
-const exerciseSchema = new Schema({
+const workoutSchema = new Schema({
   description: { type: String, required: true },
   duration: { type: Number, required: true },
   date: String,
 });
-const Exercise = mongoose.model("Exercise", exerciseSchema);
+const Workout = mongoose.model("Workout", workoutSchema);
 
 // Create user model that logs exercise array
 const userSchema = new Schema({
   username: String,
-  exercise_log: Array,
+  workout_log: Array,
 });
 const User = mongoose.model("User", userSchema);
 
@@ -98,7 +98,7 @@ app.post("/api/exercise/add", async (req, res) => {
   }
 
   // Create new exercise to push into exercise_log
-  let newExercise = new Exercise({
+  let newWorkout = new Workout({
     description: req.body.description,
     duration: parseInt(req.body.duration),
     date: date,
@@ -108,16 +108,17 @@ app.post("/api/exercise/add", async (req, res) => {
   User.findByIdAndUpdate(
     userId,
     // in Update paramater we use $push to push an object into User's exercise_log array for the object in mongoDB
-    { $push: { exercise_log: newExercise } },
+    { $push: { workout_log: newWorkout } },
     { new: true }, // We need new, true to return the updated version and not the original. (Default is false)
+
     // Callback function to execute the update
     (error, updatedUser) => {
       if (error) return res.json({ error: "userId does not exist" });
       let responseObject = {
         username: updatedUser.username,
         _id: userId,
-        description: newExercise.description,
-        duration: newExercise.duration,
+        description: newWorkout.description,
+        duration: newWorkout.duration,
         date: date,
       };
       res.json(responseObject);
