@@ -32,11 +32,20 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
-// First we need to create our model
+// First we need to create our model for user
+// Create model for exercises to add
+const exerciseSchema = new Schema({
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: String,
+});
+const Exercise = mongoose.model("Exercise", exerciseSchema);
+
+// Create user model that logs exercise array
 const userSchema = new Schema({
   username: String,
+  exercise_log: Array,
 });
-
 const User = mongoose.model("User", userSchema);
 
 // Create new user with post() from form in html
@@ -61,8 +70,9 @@ app.post("/api/exercise/new-user", (req, res) => {
 
 // Get an array of all of users in database returning object with username and _id
 app.get("/api/exercise/users", async (req, res) => {
-  // We use __v:0 because in mongoDB every object is autmatically assigned that key:value pair
-  let array = await User.find({ __v: 0 }); // Want to be all types
+  // We could use __v:0 because in mongoDB every object is autmatically assigned that key:value pair
+  // Can also just find every object in data base by using curly brackets as they represent an object and we can have a n array with all objects in mongoDB this way
+  let array = await User.find({}); // Want to be all types
 
   // Only want  each objects username and _id key:pair values so we exclude __v
   let cutArray = array.map((i) => {
@@ -77,33 +87,45 @@ app.get("/api/exercise/users", async (req, res) => {
 });
 
 /*
-You can POST to /api/exercise/add with form data userId=_id, description, duration, and optionally date. 
+You can POST to /api/exercise/add with form data userId=_id, description, duration, and optionally date.
 If no date is supplied, the current date will be used. The response returned will be the user object with the exercise fields added.
 */
 app.post("/api/exercise/add", async (req, res) => {
   let date = new Date(req.body.date).toDateString();
   let userId = req.body.userId;
-  let currentUser = false;
-
   if (date == "Invalid Date") {
     date = new Date().toDateString();
   }
-  console.log(date, "<= date");
+
+  // Create new exercise to push into exercise_log
+  let newExercise = new Exercise({
+    description: req.body.description,
+    duration: parseInt(req.body.duration),
+    date: date,
+  });
+
   // If the userId given is 24hex character to match ObjectId requirements. Then try to find user in mongoDB
   // We have to do the 24 hex character as searching for _id will not handle inputs that not the correct format and crash the app.
   if (userId.match(/^[0-9a-fA-F]{24}$/)) {
-    currentUser = await User.findOne({ _id: userId });
-  }
-
-  // If currentUser exist then respond with workout description. Else return error message
-  if (currentUser) {
-    res.json({
-      username: currentUser.username,
-      userId: currentUser._id,
-      description: req.body.description,
-      duration: req.body.duration,
-      date: date,
-    });
+    // Syntax => A.findByIdAndUpdate(id, update, options, callback) // executes
+    User.findByIdAndUpdate(
+      userId,
+      // in Update paramater we use $push to push an object into User's exercise_log array for the object in mongoDB
+      { $push: { exercise_log: newExercise } },
+      { new: true }, // We need new, true to return the updated version and not the original. (Default is false)
+      // Callback function to execute the update
+      (error, updatedUser) => {
+        if (error) return res.json({ error: "userId does not exist" });
+        let responseObject = {
+          username: updatedUser.username,
+          _id: userId,
+          description: newExercise.description,
+          duration: newExercise.duration,
+          date: date,
+        };
+        res.json(responseObject);
+      }
+    );
   } else return res.json({ error: "userId does not exist" });
 });
 
