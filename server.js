@@ -76,6 +76,39 @@ app.get("/api/exercise/users", async (req, res) => {
   res.json(cutArray);
 });
 
+/*
+You can POST to /api/exercise/add with form data userId=_id, description, duration, and optionally date. 
+If no date is supplied, the current date will be used. The response returned will be the user object with the exercise fields added.
+*/
+app.post("/api/exercise/add", async (req, res) => {
+  let date = new Date(req.body.date).toDateString();
+  let userId = req.body.userId;
+  let currentUser = false;
+
+  if (date == "Invalid Date") {
+    date = new Date().toDateString();
+  }
+  console.log(date, "<= date");
+  // If the userId given is 24hex character to match ObjectId requirements. Then try to find user in mongoDB
+  // We have to do the 24 hex character as searching for _id will not handle inputs that not the correct format and crash the app.
+  if (userId.match(/^[0-9a-fA-F]{24}$/)) {
+    currentUser = await User.findOne({ _id: userId });
+  }
+
+  // If currentUser exist then respond with workout description. Else return error message
+  if (currentUser) {
+    res.json({
+      username: currentUser.username,
+      _id: currentUser._id,
+      description: req.body.description,
+      duration: req.body.duration,
+      date: date,
+    });
+  } else return res.json({ error: "userId does not exist" });
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
+
+// 6037404f42b62600155bf1ae
