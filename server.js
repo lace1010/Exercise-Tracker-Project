@@ -145,24 +145,25 @@ app.get("/api/exercise/log", (req, res) => {
     respondObject["duration"] = foundUser.workout_log.duration;
     respondObject["date"] = foundUser.workout_log.date;
 
-    // Handle from to and limit paramters here before passing to res.json()
+    // Handle from to and limit paramters here before passing to res.json() for rest of app.get()
     if (fromDate !== "Invalid Date") respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
     if (toDate !== "Invalid Date") respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
     if (limit) respondObject["limit"] = limit; // If limit is a number (we use parseInt() in the limit variable above)
 
+    console.log(foundUser.workout_log);
     // Filter array so we only return workouts that are within from and to paramters and have a limit to how many workouts can return as well.
     let filteredArray = foundUser.workout_log.filter((element, index) => {
       if (
         // To see if a date is older than another we must convert it back from string to a real js Date()
-        new Date(fromDate) <= new Date(element.date) &&
-        new Date(element.date) <= new Date(toDate) &&
+        new Date(fromDate) < new Date(element.date) &&
+        new Date(element.date) < new Date(toDate) &&
         // If index is less than limit we got in paramter then we can add the element
-        index < limit
+        index <= limit
       ) {
         return element;
       }
     });
-
+    console.log(filteredArray);
     if (filteredArray.length > 0) {
       respondObject["count"] = filteredArray.length;
       respondObject["log"] = filteredArray;
