@@ -183,6 +183,11 @@ app.get("/api/exercise/log", (req, res) => {
       respondObject["log"] = foundUser.workout_log;
     }
 
+    // If there is a limit then slice the array in the respondObject.log value to only include a certain amount of workouts
+    if (limit) {
+      respondObject.log = respondObject.log.slice(0, limit);
+    }
+    console.log(limit);
     res.json(respondObject); // Call res.json() for our response object based on paramters given
   });
 });
