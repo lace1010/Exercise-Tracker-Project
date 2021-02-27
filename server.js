@@ -145,17 +145,17 @@ app.get("/api/exercise/log", (req, res) => {
     respondObject["duration"] = foundUser.workout_log.duration;
     respondObject["date"] = foundUser.workout_log.date;
 
-    // Handle from to and limit paramters here before passing to res.json() for rest of app.get()
+    // Handle from to and limit paramters here before passing to respondObject for rest of app.get()
     // If there is a from= or to= paramater
     if (req.query.from || req.query.to) {
       if (fromDate == "Invalid Date") {
-        fromDate = new Date(0); // Set from
+        fromDate = new Date(0); // If fromDate gives invalid date we must set variable to original computer time(0) so filteredArray still has a date to pass in to make logic work instead of undefined which would filteredArray
       } else {
-        respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
+        respondObject["from"] = fromDate; // If fromDate gives a valid date then add to responseObject
       }
 
       if (toDate == "Invalid Date") {
-        toDate = new Date();
+        toDate = new Date(); // If toDate gives invalid date we must set variable to current time so filteredArray still has a date to pass in to make logic work instead of undefined which would filteredArray
       } else {
         respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
       }
@@ -187,7 +187,6 @@ app.get("/api/exercise/log", (req, res) => {
     if (limit) {
       respondObject.log = respondObject.log.slice(0, limit);
     }
-    console.log(limit);
     res.json(respondObject); // Call res.json() for our response object based on paramters given
   });
 });
