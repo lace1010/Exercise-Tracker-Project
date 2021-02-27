@@ -130,8 +130,8 @@ app.get("/api/exercise/log", (req, res) => {
 
   let respondObject = {};
   // Example after userId=...&from=2020-02-20&to=2021-01-03&limit=3
-  let fromDate = new Date(req.query.from).toDateString();
-  let toDate = new Date(req.query.to).toDateString();
+  let fromDate = new Date(req.query.from).toDateString(); // Converts to readable string
+  let toDate = new Date(req.query.to).toDateString(); // Converts to readable string
   let limit = parseInt(req.query.limit);
 
   User.findById(req.query.userId, (error, foundUser) => {
@@ -145,18 +145,21 @@ app.get("/api/exercise/log", (req, res) => {
     respondObject["duration"] = foundUser.workout_log.duration;
     respondObject["date"] = foundUser.workout_log.date;
 
+    // Handle from to and limit paramters here before passing to res.json() for rest of app.get()
+    // If there is a from= or to= paramater
     if (req.query.from || req.query.to) {
-      // Handle from to and limit paramters here before passing to res.json() for rest of app.get()
-      if (fromDate !== "Invalid Date") {
+      if (fromDate == "Invalid Date") {
+        fromDate = new Date(0); // Set from
+      } else {
         respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
-      } else {
-        fromDate = new Date(0);
       }
-      if (toDate !== "Invalid Date") {
-        respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
-      } else {
+
+      if (toDate == "Invalid Date") {
         toDate = new Date();
+      } else {
+        respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
       }
+
       if (limit) respondObject["limit"] = limit; // If limit is a number (we use parseInt() in the limit variable above)
 
       console.log(foundUser.workout_log);
@@ -165,9 +168,7 @@ app.get("/api/exercise/log", (req, res) => {
         if (
           // To see if a date is older than another we must convert it back from string to a real js Date()
           new Date(fromDate) < new Date(element.date) &&
-          new Date(element.date) < new Date(toDate) &&
-          // If index is less than limit we got in paramter then we can add the element
-          index <= limit
+          new Date(element.date) < new Date(toDate)
         ) {
           return element;
         }
@@ -175,11 +176,11 @@ app.get("/api/exercise/log", (req, res) => {
 
       if (filteredArray.length > 0) {
         respondObject["count"] = filteredArray.length;
-        respondObject["log"] = filteredArray;
+        respondObject["log"] = filteredArray.slice(0, limit); // Add the slice to have array return amount <= limit
       }
     } else {
       respondObject["count"] = foundUser.workout_log.length;
-      respondObject["log"] = foundUser.workout_log;
+      respondObject["log"] = foundUser.workout_log.slice(0, limit); // Add the slice to have array return amount <= limit
     }
 
     res.json(respondObject); // Call res.json() for our response object based on paramters given
