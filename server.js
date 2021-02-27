@@ -176,11 +176,11 @@ app.get("/api/exercise/log", (req, res) => {
 
       if (filteredArray.length > 0) {
         respondObject["count"] = filteredArray.length;
-        respondObject["log"] = filteredArray.slice(0, limit); // Add the slice to have array return amount <= limit
+        respondObject["log"] = filteredArray;
       }
     } else {
       respondObject["count"] = foundUser.workout_log.length;
-      respondObject["log"] = foundUser.workout_log.slice(0, limit); // Add the slice to have array return amount <= limit
+      respondObject["log"] = foundUser.workout_log;
     }
 
     res.json(respondObject); // Call res.json() for our response object based on paramters given
