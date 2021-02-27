@@ -147,8 +147,16 @@ app.get("/api/exercise/log", (req, res) => {
 
     if (req.query.from || req.query.to) {
       // Handle from to and limit paramters here before passing to res.json() for rest of app.get()
-      if (fromDate !== "Invalid Date") respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
-      if (toDate !== "Invalid Date") respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
+      if (fromDate !== "Invalid Date") {
+        respondObject["from"] = fromDate; // If from= gives a valid date then add to responseObject
+      } else {
+        fromDate = new Date(0);
+      }
+      if (toDate !== "Invalid Date") {
+        respondObject["to"] = toDate; // If to= gives a valid date then add to responseObject
+      } else {
+        toDate = new Date();
+      }
       if (limit) respondObject["limit"] = limit; // If limit is a number (we use parseInt() in the limit variable above)
 
       console.log(foundUser.workout_log);
@@ -173,6 +181,7 @@ app.get("/api/exercise/log", (req, res) => {
       respondObject["count"] = foundUser.workout_log.length;
       respondObject["log"] = foundUser.workout_log;
     }
+
     res.json(respondObject); // Call res.json() for our response object based on paramters given
   });
 });
